@@ -1,7 +1,7 @@
 import db_utils # SQLite3: Connect on demand
 from flask import Flask, flash, g, jsonify, redirect, render_template, session
 from flask_session import Session
-from helpers import login_required, admin_login_required
+from helpers import admin_login_required, login_required
 import logging
 
 # Initialize Flask application
@@ -43,11 +43,6 @@ def close_connection(exception):
     if db is not None:
         db.close()
 
-"""
-There are 20 routes + a 404 page
-
-"""
-
 # --- Error handlers ---
 
 @app.errorhandler(404)
@@ -59,48 +54,64 @@ def not_found(e):
 @app.route("/")
 @login_required
 def index():
+    """Show all items."""
+
     return "TODO"
 
 
 @app.route("/cart")
 @login_required
 def cart():
+    """Show items in cart."""
+
     return "TODO"
 
 
 @app.route("/checkout")
 @login_required
 def checkout():
+    """Check user out."""
+
     return "TODO"
 
 
 @app.route("/delete")
 @login_required
 def delete():
+    """Delete an item from cart."""
+
     return "TODO"
 
 
 @app.route("/item/<id>")
 @login_required
 def item():
+    """Show an individual item."""
+
     return "TODO"
 
 
 @app.route("/orders")
 @login_required
 def orders():
+    """Show orders to the user."""
+    
     return "TODO"
 
 
 @app.route("/search")
 @login_required
 def search():
+    """Search for an item by title."""
+
     return "TODO"
 
 
-@app.route("/update")
+@app.route("/update-qty")
 @login_required
-def update():
+def update_qty():
+    """Update an item's quantity."""
+
     return "TODO"
 
 # --- User: Auth ---
@@ -108,41 +119,55 @@ def update():
 @app.route("/change-password")
 @login_required
 def change_password():
+    """Change user's password."""
+
     return "TODO"
 
 
 @app.route("/login")
 def login():
+    """ Log user in."""
+
     return "TODO"
 
 
 @app.route("/logout")
 def logout():
+    "Log user out."
+
     return "TODO"
 
 
 @app.route("/register")
 def register():
+    """Register a user."""
+    
     return "TODO"
 
 
 # --- Admin ---
 
-@app.route("/admin")
+@app.route("/admin/orders")
 @admin_login_required
-def admin():
+def admin_orders():
+    """Display orders to admin."""
+
     return "TODO"
 
 
 @app.route("/admin/delete-item")
 @admin_login_required
 def admin_delete_item():
+    """Permanently delete an item from the database."""
+
     return "TODO"
 
 
 @app.route("/admin/edit-item")
 @admin_login_required
 def admin_edit_item():
+    """Edit an item in the database."""
+
     return "TODO"
 
 
@@ -155,21 +180,30 @@ def admin_items():
 @app.route("/admin/new-item")
 @admin_login_required
 def admin_new_item():
+    """Add a new item to the database."""
+
     return "TODO"
 
 
 @app.route("/admin/update-status")
 @admin_login_required
 def admin_update_status():
+    """Update the status of an item.
+    A status can be: pending, sent', delivered, cancelled."""
+
     return "TODO"
 
 # --- Admin: Auth ---
 
 @app.route("/admin/login")
 def admin_login():
+    """Log admin in."""
+
     return "TODO"
 
 
 @app.route("/admin/logout")
 def admin_logout():
+    """Log admin out."""
+
     return "TODO"
