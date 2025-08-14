@@ -1,8 +1,9 @@
 import db_utils # SQLite3: Connect on demand
-from flask import Flask, flash, g, jsonify, redirect, render_template, session
+from flask import Flask, flash, g, jsonify, redirect, render_template, request, session, url_for
 from flask_session import Session
 from helpers import admin_login_required, login_required
 import logging
+from werkzeug.security import check_password_hash, generate_password_hash
 
 # Initialize Flask application
 app = Flask(__name__)
@@ -56,7 +57,9 @@ def not_found(e):
 def index():
     """Show all items."""
 
-    return "TODO"
+    # TODO: Query database for items
+
+    return render_template("user/index.html")
 
 
 @app.route("/cart")
@@ -124,26 +127,105 @@ def change_password():
     return "TODO"
 
 
-@app.route("/login")
+@app.route("/login", methods=["GET", "POST"])
 def login():
     """ Log user in."""
 
-    return "TODO"
+    # Forget any user_id
+    session.pop("user_id", None)
+
+    # User reached route via POST (by submitting a form via POST)
+    if request.method == "POST":
+        
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        # Ensure user provided values for username and password
+        if not username:
+            flash("Username is required.", "error")
+            return redirect(url_for("login"))
+        
+        elif not password:
+            flash("Password is required", "error")
+            return redirect(url_for("login"))
+        
+        # Query database for username
+        rows = db_utils.execute("SELECT * FROM users WHERE username = ?", (username,))
+
+        # Ensure username exists in database and password is correct
+        if len(rows) != 1 or not check_password_hash(rows[0]["hash"], password):
+            flash("Invalid username and/or password.", "error")
+            return redirect(url_for("login"))
+        
+        # Remember which user logged in
+        session["user_id"] = rows[0]["id"]
+
+        # Redirect user to index
+        return redirect(url_for("index"))
+    
+    # User reached route via GET (by clicking on a link, typing in a URL, via redirect)
+    else:
+        return render_template("user/auth/login.html")
 
 
 @app.route("/logout")
 def logout():
     "Log user out."
 
-    return "TODO"
+    # Forget any user_id
+    session.clear()
+
+    # Redirect user to login route
+    return redirect(url_for("login"))
 
 
-@app.route("/register")
+@app.route("/register", methods=["GET", "POST"])
 def register():
     """Register a user."""
-    
-    return "TODO"
 
+    # User reached route via POST (by submitting a form via POST)
+    if request.method == "POST":
+        
+        username = request.form.get("username")
+        password = request.form.get("password")
+        confirm = request.form.get("confirm")
+
+        # Ensure user provided username, password, confirm
+        if not username:
+            flash("Username is required.", "error")
+            return redirect(url_for("register"))
+        
+        elif not password:
+            flash("Password is required", "error")
+            return redirect(url_for("register"))
+        
+        elif not confirm or password != confirm:
+            flash("Passwords do not match.", "error")
+            return redirect(url_for("register"))
+        
+        # TODO: Use regex to make sure user provides a "strong" password
+        elif len(password) < 8:
+            flash("Password needs to be at least 8 characters long.", "error")
+            return redirect(url_for("register"))
+        
+        # Query database for username
+        rows = db_utils.execute("SELECT * FROM users WHERE username = ?", (username,))
+
+        # Ensure username is not taken
+        if len(rows) == 1:
+            flash("Username is taken", "error")
+            return redirect(url_for("register"))
+        
+        # Insert the new user into users table, storing a hash of the password
+        db_utils.execute("INSERT INTO users (username, hash) VALUES (?, ?)",
+            (username, generate_password_hash(password)))
+        
+        # Redirect to login page
+        return redirect(url_for("login"))
+
+    # User reached route via GET (by clicking on a link, typing in a URL, via redirect)
+    else:
+        return render_template("user/auth/register.html")
 
 # --- Admin ---
 
