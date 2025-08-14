@@ -1,13 +1,13 @@
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id INTEGER NOT NULL,
     username TEXT NOT NULL,
     hash TEXT NOT NULL,
 
     PRIMARY KEY (id)
 );
-CREATE UNIQUE INDEX username ON users (username);
+CREATE UNIQUE INDEX IF NOT EXISTS username ON users (username);
 
-CREATE TABLE items (
+CREATE TABLE IF NOT EXISTS items (
     id INTEGER NOT NULL,
     title TEXT NOT NULL,
     image_path TEXT NOT NULL,
@@ -16,9 +16,9 @@ CREATE TABLE items (
 
     PRIMARY KEY (id)
 );
-CREATE UNIQUE INDEX title ON items (title);
+CREATE UNIQUE INDEX IF NOT EXISTS title ON items (title);
 
-CREATE TABLE cart (
+CREATE TABLE IF NOT EXISTS cart (
     id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
     item_id INTEGER NOT NULL,
@@ -30,7 +30,7 @@ CREATE TABLE cart (
     PRIMARY KEY (id)
 );
 
-CREATE TABLE orders (
+CREATE TABLE IF NOT EXISTS orders (
     id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
     item_id INTEGER NOT NULL,
@@ -44,7 +44,7 @@ CREATE TABLE orders (
     PRIMARY KEY (id)
 );
 
-CREATE TABLE admins (
+CREATE TABLE IF NOT EXISTS admins (
     id INTEGER NOT NULL,
     username TEXT NOT NULL,
     hash TEXT NOT NULL,
