@@ -33,7 +33,7 @@
                         {% if request.endpoint.startswith("admin") %}
                             href="/admin"
                         {% else %}
-                            href="/"
+                            href="{{ url_for('index') }}"
                         {% endif %}
                     ><span class="blue">S</span><span class="yellow">h</span><span class="green">o</span><span class="red">p</span></a>
                     <button aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-bs-target="#navbar" data-bs-toggle="collapse" type="button">
@@ -61,7 +61,7 @@
                                     <ul class="dropdown-menu" id="account">
                                         <li class="dropdown-item"><a class="nav-link" href="/orders">Orders</a></li>
                                         <li class="dropdown-item"><a class="nav-link" href="/changepassword">Change Password</a></li>
-                                        <li class="dropdown-item"><a href="/logout" class="nav-link">Log out</a></li>
+                                        <li class="dropdown-item"><a href="{{ url_for('logout') }}" class="nav-link">Log out</a></li>
                                     </ul>
                                 </li>
                             </ul>
@@ -73,8 +73,8 @@
                         {% elif not session["admin_id"] and request.endpoint != 'adminlogin' %}
 
                             <ul class="navbar-nav ms-auto mt-2">
-                                <li class="nav-item"><a class="nav-link" href="/register">Register</a></li>
-                                <li class="nav-item"><a class="nav-link" href="/login">Log In</a></li>
+                                <li class="nav-item"><a class="nav-link" href="{{ url_for('register') }}">Register</a></li>
+                                <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}">Log In</a></li>
                             </ul>
 
                         {% elif session["admin_id"] %}
@@ -97,15 +97,19 @@
 
         </header>
 
-        {% if get_flashed_messages() %}
+        {% with messages = get_flashed_messages() %}
+        
+            {% if messages %}
 
-            <header>
-                <div class="alert alert-primary mb-0 text-center" role="alert">
-                    {{ get_flashed_messages() | join(" ") }}
-                </div>
-            </header>
+                <header>
+                    <div class="alert alert-primary mb-0 text-center" role="alert">
+                        {{ messages | join(" ") }}
+                    </div>
+                </header>
 
-        {% endif %}
+            {% endif %}
+        
+        {% endwith %}
 
         <main class="container py-5 text-center">
             {% block main %}{% endblock %}
