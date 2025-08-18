@@ -48,7 +48,7 @@
 
                                 <li>
 
-                                    <form action="/update-qty" method="post">
+                                    <form action="{{ url_for('update_qty') }}" method="post">
                                         <input type="hidden" name="id" value="{{ item.id }}">
                                         <input type="hidden" name="qty" value="{{ i + 1 }}">
                                         <button class="dropdown-item" type="submit">{{ i + 1 }}</button>
@@ -63,7 +63,7 @@
                     </div>
 
                     <div>
-                        <form action="/delete" method="post">
+                        <form action="{{ url_for('delete') }}" method="post">
                             <input type="hidden" name="id" value="{{ item.id }}">
                             <button type="submit" class="btn btn-danger btn-sm mb-2">Delete</button>
                         </form>
@@ -82,7 +82,7 @@
 
             <div class="col-12 mt-3">
 
-                <form action="/checkout" method="post">
+                <form action="{{ url_for('checkout') }}" method="post">
 
                     <div class="d-grid">
                         <input type="hidden" name="cart" value="{{ cart }}">
