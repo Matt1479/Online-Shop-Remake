@@ -155,12 +155,24 @@ def search():
     return "TODO"
 
 
-@app.route("/update-qty")
+@app.route("/update-qty", methods=["POST"])
 @login_required
 def update_qty():
     """Update an item's quantity."""
 
-    return "TODO"
+    # Validate item id and quantity
+    try:
+        id = int(request.form.get("id"))
+        qty = int(request.form.get("qty"))
+    except ValueError:
+        flash("Invalid value(s)", "error")
+        return redirect(url_for("cart"))
+    
+    if id and qty:
+        db_utils.execute("UPDATE cart SET quantity = ? WHERE item_id = ? AND user_id = ?",
+            (qty, id, session["user_id"]))
+        
+    return redirect(url_for("cart"))
 
 # --- User: Auth ---
 
