@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Orders
+{% endblock %}
+
+{% block main %}
+
+    <div class="row text-start m-3 justify-content-center text-center">
+
+        <div class="col-12">
+
+            <h1 class="mb-5">Your orders</h1>
+
+            <table class="table table-striped">
+
+                <thead>
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Price</th>
+                        <th scope="col">Quantity</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Date</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for order in orders %}
+                        <tr>
+                            <th scope="row">{{ order.title }}</th>
+                            <td>{{ order.price | usd }}</td>
+                            <td>{{ order.quantity }}</td>
+                            <td>{{ order.status }}</td>
+                            <td>{{ order.date }}</td>
+                        </tr>
+                    {% endfor %}
+                    
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+{% endblock %}

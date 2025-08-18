@@ -1,0 +1,100 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Cart
+{% endblock %}
+
+{% block main %}
+
+    {% if cart %}
+
+        <div class="col text-start mb-3">
+            <h1>Shopping Cart</h1>
+            <hr>
+        </div>
+        
+    {% else %}
+
+        <div class="col text-start mb-3">
+            <h1>Your shopping cart is empty!</h1>
+        </div>
+
+    {% endif %}
+
+    <div class="row text-start m-3 text-wrap">
+
+        {% for item in cart %}
+
+            <div class="col-sm-12 col-md-6 mb-2">
+                <div class="col-sm-12 col-md-4">
+                    <img src="{{ item.image_path }}" alt="{{ item.title }}" class="img-fluid">
+                </div>
+
+                <div class="col-sm-12 col-md-8">
+
+                    <p class="lead text-secondary fw-bold">{{ item.description }}</p>
+                    <p class="fw-bold">{{ item.price | usd }}</p>
+
+                    <div class="btn-group mb-2">
+
+                        <button aria-expanded="false" class="btn btn-secondary dropdown-toggle btn-sm"
+                            data-bs-toggle="dropdown"  type="button">
+                            Quantity: {{ item.quantity }}
+                        </button>
+
+                        <ul class="dropdown-menu">
+
+                            {% for i in range(10) %}
+
+                                <li>
+
+                                    <form action="{{ url_for('update_qty') }}" method="post">
+                                        <input type="hidden" name="id" value="{{ item.id }}">
+                                        <input type="hidden" name="qty" value="{{ i + 1 }}">
+                                        <button class="dropdown-item" type="submit">{{ i + 1 }}</button>
+                                    </form>
+
+                                </li>
+
+                            {% endfor %}
+
+                        </ul>
+
+                    </div>
+
+                    <div>
+                        <form action="{{ url_for('delete') }}" method="post">
+                            <input type="hidden" name="id" value="{{ item.id }}">
+                            <button type="submit" class="btn btn-danger btn-sm mb-2">Delete</button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+
+        {% endfor %}
+
+        {% if cart %}
+
+            <div class="col-12 text-end">
+                <p>Total: <span class="fw-bold">{{ total | usd }}</span></p>
+            </div>
+
+            <div class="col-12 mt-3">
+
+                <form action="{{ url_for('checkout') }}" method="post">
+
+                    <div class="d-grid">
+                        <input type="hidden" name="cart" value="{{ cart }}">
+                        <button class="btn btn-warning mb-2" type="submit">Proceed to checkout.</button>
+                    </div>
+                    
+                </form>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+{% endblock %}

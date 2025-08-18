@@ -1,7 +1,9 @@
+from ast import literal_eval
+from datetime import datetime
 import db_utils # SQLite3: Connect on demand
 from flask import Flask, flash, g, jsonify, redirect, render_template, request, session, url_for
 from flask_session import Session
-from helpers import admin_login_required, login_required
+from helpers import admin_login_required, login_required, usd
 import logging
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -14,8 +16,11 @@ app.config["SESSION_TYPE"] = "filesystem"
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 Session(app)
 
+# Custom filter
+app.jinja_env.filters["usd"] = usd
+
 # Set up the database
-app.config["DATABASE"] = "store.db"
+app.config["DATABASE"] = "_store.db"
 app.config["DEBUG_DB"] = True
 
 # Configure logging
@@ -50,6 +55,25 @@ def close_connection(exception):
 def not_found(e):
     return "TODO"
 
+
+# --- API ---
+
+@app.route("/api/search")
+@login_required
+def api_search():
+    """Search for an item by title."""
+
+    q = request.args.get("q")
+
+    if q:
+        items = db_utils.execute("SELECT * FROM items WHERE title LIKE ? LIMIT 15",
+            ("%" + q + "%",))
+    else:
+        items = []
+
+    # Return list of items in JSON format
+    return jsonify(items)
+
 # --- User ---
 
 @app.route("/")
@@ -57,65 +81,145 @@ def not_found(e):
 def index():
     """Show all items."""
 
-    # TODO: Query database for items
+    # Query database for items
+    rows = db_utils.execute("SELECT * FROM items")
 
-    return render_template("user/index.html")
+    return render_template("user/index.html", items=rows)
 
 
-@app.route("/cart")
+@app.route("/cart", methods=["GET", "POST"])
 @login_required
 def cart():
     """Show items in cart."""
 
-    return "TODO"
+    # User reached route via POST (submitted a form)
+    if request.method == "POST":
+
+        """Add item to cart."""
+
+        # Validate id and qty
+        try:
+            id = int(request.form.get("id"))
+            qty = int(request.form.get("qty"))
+            print(id, qty)
+        except ValueError:
+            flash("Invalid value(s).", "error")
+            return redirect(url_for("cart"))
+        
+        if id and qty:
+            rows = db_utils.execute("SELECT * from cart WHERE item_id = ? AND user_id = ?",
+                (id, session["user_id"]))
+            
+            if len(rows) > 0:
+                current_qty = int(rows[0]["quantity"])
+
+                db_utils.execute("UPDATE cart SET quantity = ? WHERE item_id = ? AND user_id = ?",
+                    (current_qty + qty, id, session["user_id"]))
+                
+            else:
+                db_utils.execute("INSERT INTO cart (quantity, item_id, user_id) VALUES (?, ?, ?)",
+                    (qty, id, session["user_id"]))
+    
+    """Select items from cart."""
+
+    cart = db_utils.execute(
+        "SELECT * FROM cart JOIN items ON items.id = cart.item_id WHERE cart.user_id = ?",
+        (session["user_id"],))
+    
+    total = 0.00
+    for item in cart:
+        total += int(item["price"]) * int(item["quantity"])
+    
+    # Render cart.html to the user, passing in cart and total
+    return render_template("user/cart.html", cart=cart, total=total)
 
 
-@app.route("/checkout")
+@app.route("/checkout", methods=["POST"])
 @login_required
 def checkout():
     """Check user out."""
 
-    return "TODO"
+    items = request.form.get("cart")
+
+    if items:
+        flash("Thank you for your purchase.", "info")
+        items = literal_eval(items)
+
+        for item in items:
+            db_utils.execute(
+                "INSERT INTO orders (user_id, item_id, quantity, date) VALUES (?, ?, ?, ?)",
+                (
+                    session["user_id"],
+                    item["item_id"],
+                    item["quantity"],
+                    datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                ),
+            )
+        db_utils.execute("DELETE FROM cart where user_id = ?", (session["user_id"],))
+
+    return redirect(url_for("orders"))
 
 
-@app.route("/delete")
+@app.route("/delete", methods=["POST"])
 @login_required
 def delete():
     """Delete an item from cart."""
 
-    return "TODO"
+    try:
+        id = int(request.form.get("id"))
+    except ValueError:
+        flash("Invalid value(s).", "error")
+        return redirect(url_for("cart"))
+    
+    if id:
+        db_utils.execute("DELETE FROM cart WHERE item_id = ? AND user_id = ?",
+            (id, session["user_id"]))
+    
+    return redirect(url_for("cart"))
 
 
 @app.route("/item/<id>")
 @login_required
-def item():
+def item(id):
     """Show an individual item."""
 
-    return "TODO"
+    rows = db_utils.execute("SELECT * FROM items WHERE id = ?", (id,))
+    
+    return render_template("user/item.html", item=rows[0])
 
 
 @app.route("/orders")
 @login_required
 def orders():
     """Show orders to the user."""
+
+    rows = db_utils.execute("""
+        SELECT * FROM orders
+        JOIN items on items.id = orders.item_id
+        WHERE orders.user_id = ?""",
+        (session["user_id"],))
     
-    return "TODO"
+    return render_template("user/orders.html", orders=rows)
 
 
-@app.route("/search")
-@login_required
-def search():
-    """Search for an item by title."""
-
-    return "TODO"
-
-
-@app.route("/update-qty")
+@app.route("/update-qty", methods=["POST"])
 @login_required
 def update_qty():
     """Update an item's quantity."""
 
-    return "TODO"
+    # Validate item id and quantity
+    try:
+        id = int(request.form.get("id"))
+        qty = int(request.form.get("qty"))
+    except ValueError:
+        flash("Invalid value(s)", "error")
+        return redirect(url_for("cart"))
+    
+    if id and qty:
+        db_utils.execute("UPDATE cart SET quantity = ? WHERE item_id = ? AND user_id = ?",
+            (qty, id, session["user_id"]))
+        
+    return redirect(url_for("cart"))
 
 # --- User: Auth ---
 

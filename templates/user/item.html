@@ -1,0 +1,60 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    {{ item.title }}
+{% endblock %}
+
+{% block main %}
+
+    <div class="row text-start m-3 text-wrap">
+
+        <div class="col-12 mb-3">
+            <h1>{{ item.title }}</h1>
+        </div>
+
+        <div class="col-sm-12 col-md-8">
+            <img alt="{{ item.title }}" class="img-fluid" src="/{{ item.image_path }}">
+        </div>
+
+        <div class="col-sm-12 col-md-4">
+
+            <p class="lead text-secondary fw-bold">{{ item.description }}</p>
+            <p class="text-end m-3">Price: <span class="fw-bold">{{ item.price | usd }}</span></p>
+
+            <form action="{{ url_for('cart') }}" method="post">
+                <input name="id" type="hidden" value="{{ item.id }}">
+                <input name="qty" type="hidden" value="1">
+
+                <div class="btn-group mb-2">
+                    
+                    <button aria-expanded="false" class="btn btn-secondary dropdown-toggle btn-sm"
+                        data-bs-toggle="dropdown" id="qtyDropdownTrigger" type="button">
+                        Quantity: 1
+                    </button>
+
+                    <ul class="dropdown-menu" id="qtyDropdown">
+                        {% for i in range(10) %}
+                            <li class="dropdown-item" type="submit">
+                                {{ i + 1 }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+
+                </div>
+
+                <div class="d-grid">
+                    <button class="btn btn-warning mb-2" type="submit">Add to cart</button>
+                    <button class="btn btn-success" type="submit">Buy now</button>
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+{% endblock %}
+
+{% block script %}
+    <script src="/static/JavaScript/item.js"></script>
+{% endblock %}
