@@ -119,12 +119,55 @@ def update_qty():
 
 # --- User: Auth ---
 
-@app.route("/change-password")
+@app.route("/change-password", methods=["GET", "POST"])
 @login_required
 def change_password():
     """Change user's password."""
+    
+    # User reached route via POST (by submitting a form via POST)
+    if request.method == "POST":
+        
+        current = request.form.get("current")
+        new = request.form.get("new")
+        confirm = request.form.get("confirm")
 
-    return "TODO"
+        # Ensure fields have values
+        if not current or not new or not confirm:
+            flash("Field(s) can't be empty.", "error")
+            return redirect(url_for("change_password"))
+        
+        # Ensure current password is correct
+        rows = db_utils.execute("SELECT hash FROM users WHERE id = ?",
+            (session["user_id"],))
+        if not check_password_hash(rows[0]["hash"], current):
+            flash("Current password is incorrect.", "error")
+            return redirect(url_for("change_password"))
+        
+        # Ensure passwords match
+        if new != confirm:
+            flash("Passwords do not match.", "error")
+            return redirect(url_for("change_password"))
+        
+        # Ensure new password is different than the current one
+        if new == current:
+            flash("Your new password can't be the same as the current password.", "error")
+            return redirect(url_for("change_password"))
+        
+        # Ensure new password is at least 8 characters long (TODO: Use RegEx)
+        if len(new) < 8:
+            flash("Password needs to be at least 8 characters.", "error")
+            return redirect(url_for("change_password"))
+        
+        # Update old hash with new
+        db_utils.execute("UPDATE users SET hash = ? WHERE id = ?",
+            (generate_password_hash(new), session["user_id"],))
+        
+        flash("Password changed successfully.", "info")
+        return redirect(url_for("change_password"))
+    
+    # User reached route via GET (by clicking on a link, typing in a URL, via redirect)
+    else:
+        return render_template("user/auth/changepw.html")
 
 
 @app.route("/login", methods=["GET", "POST"])
