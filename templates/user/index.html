@@ -20,7 +20,7 @@
                         <h5 class="card-title">{{ item.title }}</h5>
                         <p class="card-text">{{ item.description }}</p>
                         <p class="card-text">Price: {{ item.price | usd }}</p>
-                        <a href="/item/{{ item.id }}" class="stretched-link" type="hidden"></a>
+                        <a href="/item/{{ item.id }}" class="stretched-link"></a>
                     </div>
                     
                 </div>
@@ -31,4 +31,8 @@
 
     </div>
 
+{% endblock %}
+
+{% block script %}
+    <script src="static/JavaScript/search.js"></script>
 {% endblock %}
