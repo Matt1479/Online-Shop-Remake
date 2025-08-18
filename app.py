@@ -121,12 +121,22 @@ def checkout():
     return "TODO"
 
 
-@app.route("/delete")
+@app.route("/delete", methods=["POST"])
 @login_required
 def delete():
     """Delete an item from cart."""
 
-    return "TODO"
+    try:
+        id = int(request.form.get("id"))
+    except ValueError:
+        flash("Invalid value(s).", "error")
+        return redirect(url_for("cart"))
+    
+    if id:
+        db_utils.execute("DELETE FROM cart WHERE item_id = ? AND user_id = ?",
+            (id, session["user_id"]))
+    
+    return redirect(url_for("cart"))
 
 
 @app.route("/item/<id>")
