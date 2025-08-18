@@ -66,12 +66,51 @@ def index():
     return render_template("user/index.html", items=rows)
 
 
-@app.route("/cart")
+@app.route("/cart", methods=["GET", "POST"])
 @login_required
 def cart():
     """Show items in cart."""
 
-    return "TODO"
+    # User reached route via POST (submitted a form)
+    if request.method == "POST":
+
+        """Add item to cart."""
+
+        # Validate id and qty
+        try:
+            id = int(request.form.get("id"))
+            qty = int(request.form.get("qty"))
+            print(id, qty)
+        except ValueError:
+            flash("Invalid value(s).", "error")
+            return redirect(url_for("cart"))
+        
+        if id and qty:
+            rows = db_utils.execute("SELECT * from cart WHERE item_id = ? AND user_id = ?",
+                (id, session["user_id"]))
+            
+            if len(rows) > 0:
+                current_qty = int(rows[0]["quantity"])
+
+                db_utils.execute("UPDATE cart SET quantity = ? WHERE item_id = ? AND user_id = ?",
+                    (current_qty + qty, id, session["user_id"]))
+                
+            else:
+                db_utils.execute("INSERT INTO cart (quantity, item_id, user_id) VALUES (?, ?, ?)",
+                    (qty, id, session["user_id"]))
+    
+    """Select items from cart."""
+
+    cart = db_utils.execute(
+        "SELECT * FROM cart JOIN items ON items.id = cart.item_id WHERE cart.user_id = ?",
+        (session["user_id"],))
+    
+    total = 0.00
+    for item in cart:
+        total += int(item["price"]) * int(item["quantity"])
+    
+    # Render cart.html to the user, passing in cart and total
+    return render_template("user/cart.html", cart=cart, total=total)
 
 
 @app.route("/checkout")
