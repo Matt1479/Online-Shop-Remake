@@ -193,7 +193,13 @@ def item(id):
 def orders():
     """Show orders to the user."""
 
-    return "TODO"
+    rows = db_utils.execute("""
+        SELECT * FROM orders
+        JOIN items on items.id = orders.item_id
+        WHERE orders.user_id = ?""",
+        (session["user_id"],))
+    
+    return render_template("user/orders.html", orders=rows)
 
 
 @app.route("/update-qty", methods=["POST"])
