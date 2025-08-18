@@ -92,10 +92,12 @@ def delete():
 
 @app.route("/item/<id>")
 @login_required
-def item():
+def item(id):
     """Show an individual item."""
 
-    return "TODO"
+    rows = db_utils.execute("SELECT * FROM items WHERE id = ?", id)
+    
+    return render_template("user/item.html", item=rows[0])
 
 
 @app.route("/orders")
