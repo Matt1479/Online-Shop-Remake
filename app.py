@@ -60,9 +60,10 @@ def not_found(e):
 def index():
     """Show all items."""
 
-    # TODO: Query database for items
+    # Query database for items
+    rows = db_utils.execute("SELECT * FROM items")
 
-    return render_template("user/index.html")
+    return render_template("user/index.html", items=rows)
 
 
 @app.route("/cart")
