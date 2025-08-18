@@ -1,7 +1,7 @@
 import db_utils # SQLite3: Connect on demand
 from flask import Flask, flash, g, jsonify, redirect, render_template, request, session, url_for
 from flask_session import Session
-from helpers import admin_login_required, login_required
+from helpers import admin_login_required, login_required, usd
 import logging
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -14,8 +14,11 @@ app.config["SESSION_TYPE"] = "filesystem"
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 Session(app)
 
+# Custom filter
+app.jinja_env.filters["usd"] = usd
+
 # Set up the database
-app.config["DATABASE"] = "store.db"
+app.config["DATABASE"] = "_store.db"
 app.config["DEBUG_DB"] = True
 
 # Configure logging
