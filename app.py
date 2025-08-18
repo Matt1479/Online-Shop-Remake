@@ -1,3 +1,5 @@
+from ast import literal_eval
+from datetime import datetime
 import db_utils # SQLite3: Connect on demand
 from flask import Flask, flash, g, jsonify, redirect, render_template, request, session, url_for
 from flask_session import Session
@@ -113,12 +115,23 @@ def cart():
     return render_template("user/cart.html", cart=cart, total=total)
 
 
-@app.route("/checkout")
+@app.route("/checkout", methods=["POST"])
 @login_required
 def checkout():
     """Check user out."""
 
-    return "TODO"
+    items = request.form.get("cart")
+
+    if items:
+        flash("Thank you for your purchase.", "info")
+        items = literal_eval(items)
+        
+        for item in items:
+            db_utils.execute("INSERT INTO orders (user_id, item_id, quantity, date) VALUES (?, ?, ?, ?)",
+                (session["user_id"], item["item_id"], item["quantity"], datetime.now()))
+        db_utils.execute("DELETE FROM cart where user_id = ?", (session["user_id"],))
+
+    return redirect(url_for("index"))
 
 
 @app.route("/delete", methods=["POST"])
