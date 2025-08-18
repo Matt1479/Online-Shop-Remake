@@ -157,7 +157,7 @@ def checkout():
             )
         db_utils.execute("DELETE FROM cart where user_id = ?", (session["user_id"],))
 
-    return redirect(url_for("index"))
+    return redirect(url_for("orders"))
 
 
 @app.route("/delete", methods=["POST"])
