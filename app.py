@@ -55,6 +55,25 @@ def close_connection(exception):
 def not_found(e):
     return "TODO"
 
+
+# --- API ---
+
+@app.route("/api/search")
+@login_required
+def api_search():
+    """Search for an item by title."""
+
+    q = request.args.get("q")
+
+    if q:
+        items = db_utils.execute("SELECT * FROM items WHERE title LIKE ? LIMIT 15",
+            ("%" + q + "%",))
+    else:
+        items = []
+
+    # Return list of items in JSON format
+    return jsonify(items)
+
 # --- User ---
 
 @app.route("/")
@@ -167,14 +186,6 @@ def item(id):
 def orders():
     """Show orders to the user."""
     
-    return "TODO"
-
-
-@app.route("/search")
-@login_required
-def search():
-    """Search for an item by title."""
-
     return "TODO"
 
 
