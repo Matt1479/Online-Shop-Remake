@@ -144,10 +144,17 @@ def checkout():
     if items:
         flash("Thank you for your purchase.", "info")
         items = literal_eval(items)
-        
+
         for item in items:
-            db_utils.execute("INSERT INTO orders (user_id, item_id, quantity, date) VALUES (?, ?, ?, ?)",
-                (session["user_id"], item["item_id"], item["quantity"], datetime.now()))
+            db_utils.execute(
+                "INSERT INTO orders (user_id, item_id, quantity, date) VALUES (?, ?, ?, ?)",
+                (
+                    session["user_id"],
+                    item["item_id"],
+                    item["quantity"],
+                    datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                ),
+            )
         db_utils.execute("DELETE FROM cart where user_id = ?", (session["user_id"],))
 
     return redirect(url_for("index"))
@@ -185,7 +192,7 @@ def item(id):
 @login_required
 def orders():
     """Show orders to the user."""
-    
+
     return "TODO"
 
 
