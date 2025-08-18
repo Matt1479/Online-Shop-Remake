@@ -95,7 +95,7 @@ def delete():
 def item(id):
     """Show an individual item."""
 
-    rows = db_utils.execute("SELECT * FROM items WHERE id = ?", id)
+    rows = db_utils.execute("SELECT * FROM items WHERE id = ?", (id,))
     
     return render_template("user/item.html", item=rows[0])
 
