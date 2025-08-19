@@ -384,9 +384,18 @@ def admin():
 @app.route("/admin/orders")
 @admin_login_required
 def admin_orders():
-    """Display orders to admin."""
+    """Display orders to admin (i.e., show admin panel)."""
 
-    return "TODO"
+    statuses = ["cancelled", "delivered", "pending", "sent"]
+
+    orders = {}
+
+    for status in statuses:
+        orders[status] = db_utils.execute(
+            "SELECT * FROM orders WHERE orders.status = ?", (status,)
+        )
+
+    return render_template("admin/orders.html", orders=orders, statuses=statuses)
 
 
 @app.route("/admin/delete-item")
