@@ -376,6 +376,11 @@ def register():
 
 # --- Admin ---
 
+@app.route("/admin")
+def admin():
+    return redirect(url_for("admin_orders"))
+
+
 @app.route("/admin/orders")
 @admin_login_required
 def admin_orders():
@@ -518,7 +523,7 @@ def admin_register():
             (username, generate_password_hash(password)))
         
         # Flash a message and redirect to login page
-        flash("Successfully registered a new admin. Please log in.", "info")
+        flash("Successfully registered. Please log in.", "info")
         return redirect(url_for("admin_login"))
 
     # User reached route via GET (by clicking on a link, typing in a URL, via redirect)
