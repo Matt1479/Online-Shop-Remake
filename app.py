@@ -180,7 +180,7 @@ def delete():
     return redirect(url_for("cart"))
 
 
-@app.route("/item/<id>")
+@app.route("/item/<int:id>")
 @login_required
 def item(id):
     """Show an individual item."""
@@ -406,7 +406,7 @@ def admin_delete_item():
     return "TODO"
 
 
-@app.route("/admin/edit-item")
+@app.route("/admin/edit-item/<int:id>", methods=["GET", "POST"])
 @admin_login_required
 def admin_edit_item():
     """Edit an item in the database."""
@@ -417,7 +417,11 @@ def admin_edit_item():
 @app.route("/admin/items")
 @admin_login_required
 def admin_items():
-    return "TODO"
+    """Display a list of items in database."""
+
+    items = db_utils.execute("SELECT * FROM items")
+
+    return render_template("admin/items.html", items=items)
 
 
 @app.route("/admin/new-item")
