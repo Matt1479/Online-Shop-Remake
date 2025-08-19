@@ -468,4 +468,8 @@ def admin_login():
 def admin_logout():
     """Log admin out."""
 
-    return "TODO"
+    # Forget any admin_id
+    session.clear()
+
+    # Redirect to login form
+    return redirect(url_for("admin_login"))
