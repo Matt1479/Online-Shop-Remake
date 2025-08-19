@@ -18,7 +18,7 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 app.config["UPLOAD_FOLDER"] = "static/images"
-app.config["MAX_FILE_SIZE"] = 4 * (1024 * 1024) # 4 MB limit
+app.config["MAX_CONTENT_LENGTH"] = 4 * (1024 * 1024) # 4 MB limit
 Session(app)
 
 # Custom filter
