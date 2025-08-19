@@ -5,6 +5,7 @@ from flask import Flask, flash, g, jsonify, redirect, render_template, request, 
 from flask_session import Session
 from helpers import admin_login_required, login_required, usd
 import logging
+import os
 from werkzeug.security import check_password_hash, generate_password_hash
 
 # Initialize Flask application
@@ -398,12 +399,22 @@ def admin_orders():
     return render_template("admin/orders.html", orders=orders, statuses=STATUSES)
 
 
-@app.route("/admin/delete-item")
+@app.route("/admin/delete-item", methods=["POST"])
 @admin_login_required
 def admin_delete_item():
     """Permanently delete an item from the database."""
 
-    return "TODO"
+    id = request.form.get("id")
+
+    if id:
+        rows = db_utils.execute("SELECT image_path as path FROM items WHERE id = ?",
+            (id,))
+        db_utils.execute("DELETE FROM items WHERE id = ?", (id,))
+
+        # Remove image from disk
+        os.remove(os.path.join(rows[0]["path"]))
+
+    return redirect(url_for("admin_items"))
 
 
 @app.route("/admin/edit-item/<int:id>", methods=["GET", "POST"])
