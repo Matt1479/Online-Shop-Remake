@@ -56,7 +56,7 @@
 
                                                     <form action="{{ url_for('admin_update_status') }}" method="post">
 
-                                                        <input name="order_id" type="hidden" value="{{ order.order_id }}">
+                                                        <input name="order_id" type="hidden" value="{{ order.id }}">
                                                         <input name="status" type="hidden" value="{{ status }}">
 
                                                         {% if order.status == status %}

@@ -30,6 +30,8 @@ if app.config["DEBUG_DB"]:
 # Initialize the database
 db_utils.init_db(app)
 
+# A list of statuses an order can have
+STATUSES = ["cancelled", "delivered", "pending", "sent"]
 
 @app.after_request
 def after_request(response):
@@ -386,16 +388,14 @@ def admin():
 def admin_orders():
     """Display orders to admin (i.e., show admin panel)."""
 
-    statuses = ["cancelled", "delivered", "pending", "sent"]
-
     orders = {}
 
-    for status in statuses:
+    for status in STATUSES:
         orders[status] = db_utils.execute(
             "SELECT * FROM orders WHERE orders.status = ?", (status,)
         )
 
-    return render_template("admin/orders.html", orders=orders, statuses=statuses)
+    return render_template("admin/orders.html", orders=orders, statuses=STATUSES)
 
 
 @app.route("/admin/delete-item")
@@ -428,13 +428,20 @@ def admin_new_item():
     return "TODO"
 
 
-@app.route("/admin/update-status")
+@app.route("/admin/update-status", methods=["POST"])
 @admin_login_required
 def admin_update_status():
     """Update the status of an item.
-    A status can be: pending, sent', delivered, cancelled."""
+    A status can be: pending, sent, delivered, cancelled."""
 
-    return "TODO"
+    order_id = request.form.get("order_id")
+    status = request.form.get("status")
+
+    if status and status in STATUSES and order_id:
+        db_utils.execute("UPDATE orders SET status = ? WHERE id = ?",
+            (status, order_id))
+    
+    return redirect(url_for("admin_orders"))
 
 # --- Admin: Auth ---
 
