@@ -10,7 +10,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS username ON users (username);
 CREATE TABLE IF NOT EXISTS items (
     id INTEGER NOT NULL,
     title TEXT NOT NULL,
-    image_path TEXT NOT NULL,
+    filename TEXT NOT NULL,
     price NUMERIC NOT NULL DEFAULT 0.00,
     description TEXT,
 

@@ -3,10 +3,12 @@ from datetime import datetime
 import db_utils # SQLite3: Connect on demand
 from flask import Flask, flash, g, jsonify, redirect, render_template, request, session, url_for
 from flask_session import Session
-from helpers import admin_login_required, login_required, usd
+from helpers import admin_login_required, allowed_file, login_required, usd
 import logging
 import os
+from werkzeug.exceptions import RequestEntityTooLarge
 from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.utils import secure_filename
 
 # Initialize Flask application
 app = Flask(__name__)
@@ -15,13 +17,15 @@ app = Flask(__name__)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 app.config["TEMPLATES_AUTO_RELOAD"] = True
+app.config["UPLOAD_FOLDER"] = "static/images"
+app.config["MAX_FILE_SIZE"] = 4 * (1024 * 1024) # 4 MB limit
 Session(app)
 
 # Custom filter
 app.jinja_env.filters["usd"] = usd
 
 # Set up the database
-app.config["DATABASE"] = "_store.db"
+app.config["DATABASE"] = "store.db"
 app.config["DEBUG_DB"] = True
 
 # Configure logging
@@ -57,6 +61,12 @@ def close_connection(exception):
 @app.errorhandler(404)
 def not_found(e):
     return "TODO"
+
+
+@app.errorhandler(RequestEntityTooLarge)
+def handle_large_file(e):
+    flash("File too large. Max size is 4 MB.", "error")
+    return redirect(url_for("admin_new_item"))
 
 
 # --- API ---
@@ -461,12 +471,68 @@ def admin_items():
     return render_template("admin/items.html", items=items)
 
 
-@app.route("/admin/new-item")
+@app.route("/admin/new-item", methods=["GET", "POST"])
 @admin_login_required
 def admin_new_item():
     """Add a new item to the database."""
 
-    return "TODO"
+    if request.method == "POST":
+        
+        title = request.form.get("title")
+        price = request.form.get("price")
+        description = request.form.get("description")
+
+        try:
+            price = float(price)
+        except ValueError:
+            flash("Price must be a real number.", "error")
+            return redirect(url_for("admin_new_item"))
+
+        if title and price and description:
+
+            # Check if the POST request has a file part
+            if 'file' not in request.files:
+                flash("No file part.", "error")
+                return redirect(url_for("admin_new_item"))
+            
+            file = request.files['file']
+
+            # Make sure user selects a file
+            if file.filename == "":
+                flash("No selected file.", "error")
+                return redirect(url_for("admin_new_item"))
+            
+            if file and allowed_file(file.filename):
+
+                filename = secure_filename(file.filename)
+                _, extension = os.path.splitext(filename)
+
+                current_top_id = db_utils.execute("SELECT MAX(id) as n FROM items")
+                new_id = int(current_top_id[0]["n"]) if current_top_id[0]["n"] else 1
+                
+                new_name = str(new_id) + extension
+
+                image_path = os.path.join(app.config["UPLOAD_FOLDER"], new_name)
+                file.save(image_path)
+
+                db_utils.execute(
+                    """
+                    INSERT INTO items (title, filename, price, description)
+                    VALUES (?, ?, ?, ?)
+                    """,
+                    (title, new_name, price, description)
+                )
+                
+                flash(f"Successfully added a new item of id: {new_id}")
+                return redirect(url_for("admin_items"))
+        
+        else:
+
+            flash("Missing title, price or description.", "error")
+            return redirect(url_for("admin_new_item"))
+    
+    else:
+        return render_template("admin/new-item.html")
 
 
 @app.route("/admin/update-status", methods=["POST"])
