@@ -414,6 +414,8 @@ def admin_delete_item():
         # Remove image from disk
         os.remove(os.path.join(rows[0]["path"]))
 
+        flash(f"Successfully deleted an item of id: {id}", "info")
+
     return redirect(url_for("admin_items"))
 
 
