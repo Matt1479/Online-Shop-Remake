@@ -1,0 +1,96 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Orders
+{% endblock %}
+
+{% block main %}
+
+    {% for status in orders %}
+
+        <div class="row text-start m-3 justify-content-center text-center">
+
+            <div class="col-12">
+
+                <h1 class="mb-5">{{ status | title }}</h1>
+
+                <table class="table table-striped">
+
+                    <thead>
+
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">user_id</th>
+                            <th scope="col">item_id</th>
+                            <th scope="col">Quantity</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Date</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for order in orders[status] %}
+
+                            <tr>
+
+                                <th scope="row">{{ order.id }}</th>
+                                <td>{{ order.user_id }}</td>
+                                <td>{{ order.item_id }}</td>
+                                <td>{{ order.quantity }}</td>
+
+                                <td>
+
+                                    <div class="dropdown">
+
+                                        <button class="btn btn-outline-secondary dropdown-toggle btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            {{ order.status }}
+                                        </button>
+
+                                        <ul class="dropdown-menu">
+
+                                            {% for status in statuses %}
+
+                                                <li>
+
+                                                    <form action="{{ url_for('admin_update_status') }}" method="post">
+
+                                                        <input name="order_id" type="hidden" value="{{ order.id }}">
+                                                        <input name="status" type="hidden" value="{{ status }}">
+
+                                                        {% if order.status == status %}
+                                                            <button class="dropdown-item active" type="submit">{{ status }}</button>
+                                                        {% else %}
+                                                            <button class="dropdown-item" type="submit">{{ status }}</button>
+                                                        {% endif %}
+                                                        
+                                                    </form>
+                                                </li>
+
+                                                
+                                            {% endfor %}
+
+                                        </ul>
+                                        
+                                    </div>
+
+                                </td>
+
+                                <td>{{ order.date }}</td>
+                                
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    {% endfor %}
+
+{% endblock %}

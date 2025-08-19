@@ -3,9 +3,12 @@ from datetime import datetime
 import db_utils # SQLite3: Connect on demand
 from flask import Flask, flash, g, jsonify, redirect, render_template, request, session, url_for
 from flask_session import Session
-from helpers import admin_login_required, login_required, usd
+from helpers import admin_login_required, allowed_file, login_required, usd
 import logging
+import os
+from werkzeug.exceptions import RequestEntityTooLarge
 from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.utils import secure_filename
 
 # Initialize Flask application
 app = Flask(__name__)
@@ -14,6 +17,8 @@ app = Flask(__name__)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 app.config["TEMPLATES_AUTO_RELOAD"] = True
+app.config["UPLOAD_FOLDER"] = "static/images"
+app.config["MAX_FILE_SIZE"] = 4 * (1024 * 1024) # 4 MB limit
 Session(app)
 
 # Custom filter
@@ -30,6 +35,8 @@ if app.config["DEBUG_DB"]:
 # Initialize the database
 db_utils.init_db(app)
 
+# A list of statuses an order can have
+STATUSES = ["cancelled", "delivered", "pending", "sent"]
 
 @app.after_request
 def after_request(response):
@@ -54,6 +61,12 @@ def close_connection(exception):
 @app.errorhandler(404)
 def not_found(e):
     return "TODO"
+
+
+@app.errorhandler(RequestEntityTooLarge)
+def handle_large_file(e):
+    flash("File too large. Max size is 4 MB.", "error")
+    return redirect(url_for("admin_new_item"))
 
 
 # --- API ---
@@ -178,7 +191,7 @@ def delete():
     return redirect(url_for("cart"))
 
 
-@app.route("/item/<id>")
+@app.route("/item/<int:id>")
 @login_required
 def item(id):
     """Show an individual item."""
@@ -384,48 +397,158 @@ def admin():
 @app.route("/admin/orders")
 @admin_login_required
 def admin_orders():
-    """Display orders to admin."""
+    """Display orders to admin (i.e., show admin panel)."""
 
-    return "TODO"
+    orders = {}
+
+    for status in STATUSES:
+        orders[status] = db_utils.execute(
+            "SELECT * FROM orders WHERE orders.status = ?", (status,)
+        )
+
+    return render_template("admin/orders.html", orders=orders, statuses=STATUSES)
 
 
-@app.route("/admin/delete-item")
+@app.route("/admin/delete-item", methods=["POST"])
 @admin_login_required
 def admin_delete_item():
     """Permanently delete an item from the database."""
 
-    return "TODO"
+    id = request.form.get("id")
+
+    if id:
+        rows = db_utils.execute("SELECT filename FROM items WHERE id = ?",
+            (id,))
+        db_utils.execute("DELETE FROM items WHERE id = ?", (id,))
+
+        # Remove image from disk
+        os.remove(os.path.join(app.config["UPLOAD_FOLDER"], rows[0]["filename"]))
+
+        flash(f"Successfully deleted an item of id: {id}", "info")
+
+    return redirect(url_for("admin_items"))
 
 
-@app.route("/admin/edit-item")
+@app.route("/admin/edit-item/<int:id>", methods=["GET", "POST"])
 @admin_login_required
-def admin_edit_item():
+def admin_edit_item(id):
     """Edit an item in the database."""
 
-    return "TODO"
+    if request.method == "POST":
+
+        title = request.form.get("title")
+        # image = request.form.get("image")
+        price = request.form.get("price")
+        description = request.form.get("description")
+
+        try:
+            price = float(price)
+        except ValueError:
+            flash("Price must be a real number.", "error")
+            return redirect(url_for("admin_edit_item", id=id))
+
+        if title and price and description:
+            db_utils.execute("""
+                UPDATE items SET title = ?, price = ?, description = ? WHERE id = ?
+                """, (title, price, description, id))
+        
+        flash(f"Successfully updated an item of id: {id}", "info")
+        return redirect(url_for("admin_items"))
+
+    else:
+        
+        rows = db_utils.execute("SELECT * FROM items WHERE id = ?", (id,))
+        return render_template("admin/edit-item.html", item=rows[0])
 
 
 @app.route("/admin/items")
 @admin_login_required
 def admin_items():
-    return "TODO"
+    """Display a list of items in database."""
+
+    items = db_utils.execute("SELECT * FROM items")
+
+    return render_template("admin/items.html", items=items)
 
 
-@app.route("/admin/new-item")
+@app.route("/admin/new-item", methods=["GET", "POST"])
 @admin_login_required
 def admin_new_item():
     """Add a new item to the database."""
 
-    return "TODO"
+    if request.method == "POST":
+        
+        title = request.form.get("title")
+        price = request.form.get("price")
+        description = request.form.get("description")
+
+        try:
+            price = float(price)
+        except ValueError:
+            flash("Price must be a real number.", "error")
+            return redirect(url_for("admin_new_item"))
+
+        if title and price and description:
+
+            # Check if the POST request has a file part
+            if 'file' not in request.files:
+                flash("No file part.", "error")
+                return redirect(url_for("admin_new_item"))
+            
+            file = request.files['file']
+
+            # Make sure user selects a file
+            if file.filename == "":
+                flash("No selected file.", "error")
+                return redirect(url_for("admin_new_item"))
+            
+            if file and allowed_file(file.filename):
+
+                filename = secure_filename(file.filename)
+                _, extension = os.path.splitext(filename)
+
+                current_top_id = db_utils.execute("SELECT MAX(id) as n FROM items")
+                new_id = int(current_top_id[0]["n"]) + 1 if current_top_id[0]["n"] else 1
+                
+                new_name = str(new_id) + extension
+
+                image_path = os.path.join(app.config["UPLOAD_FOLDER"], new_name)
+                file.save(image_path)
+
+                db_utils.execute(
+                    """
+                    INSERT INTO items (title, filename, price, description)
+                    VALUES (?, ?, ?, ?)
+                    """,
+                    (title, new_name, price, description)
+                )
+                
+                flash(f"Successfully added a new item of id: {new_id}")
+                return redirect(url_for("admin_items"))
+        
+        else:
+
+            flash("Missing title, price or description.", "error")
+            return redirect(url_for("admin_new_item"))
+    
+    else:
+        return render_template("admin/new-item.html")
 
 
-@app.route("/admin/update-status")
+@app.route("/admin/update-status", methods=["POST"])
 @admin_login_required
 def admin_update_status():
     """Update the status of an item.
-    A status can be: pending, sent', delivered, cancelled."""
+    A status can be: pending, sent, delivered, cancelled."""
 
-    return "TODO"
+    order_id = request.form.get("order_id")
+    status = request.form.get("status")
+
+    if status and status in STATUSES and order_id:
+        db_utils.execute("UPDATE orders SET status = ? WHERE id = ?",
+            (status, order_id))
+    
+    return redirect(url_for("admin_orders"))
 
 # --- Admin: Auth ---
 

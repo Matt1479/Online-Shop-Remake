@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Edit an item
+{% endblock %}
+
+{% block main %}
+
+    <form action="{{ url_for('admin_edit_item', id=item.id) }}" enctype="multipart/form-data" method="post">
+
+        <div class="mb-3">
+
+            <label class="form-label" for="title">Title</label>
+            <textarea class="form-control" id="title" name="title" rows="3" type="text">{{ item.title }}</textarea>
+
+        </div>
+
+        <!-- <div class="mb-3">
+
+            <label class="form-label" for="image">image</label>
+            <input accept="image/*" class="form-control" id="image" name="image" type="file">
+
+        </div> -->
+
+        <div class="mb-3">
+
+            <label class="form-label" for="price">Price</label>
+            <input class="form-control" id="price" name="price" step="0.01" type="number"
+                value="{{ item.price }}">
+
+        </div>
+
+        <div class="mb-3">
+
+            <label for="Description" class="form-label">Description</label>
+            <textarea class="form-control" id="Description" name="description" rows="4" type="text">{{ item.description }}</textarea>
+
+        </div>
+
+        <button class="btn btn-success btn-lg" type="submit">Confirm</button>
+        <a class="btn btn-warning btn-lg" href="{{ url_for('admin_items') }}">Cancel</a>
+
+    </form>
+
+{% endblock %}

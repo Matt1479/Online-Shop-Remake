@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     <div class="card h-100">
 
-                        <img alt="${item.title}" class="card-img-top" src="/${item.image_path}">
+                        <img alt="${item.title}" class="card-img-top" src="/static/images/${item.filename}">
 
                         <div class="card-body">
                             <h5 class="card-title">${item.title}</h5>

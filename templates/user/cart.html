@@ -27,7 +27,7 @@
 
             <div class="col-sm-12 col-md-6 mb-2">
                 <div class="col-sm-12 col-md-4">
-                    <img src="{{ item.image_path }}" alt="{{ item.title }}" class="img-fluid">
+                    <img src="/{{ config['UPLOAD_FOLDER'] }}/{{ item.filename }}" alt="{{ item.title }}" class="img-fluid">
                 </div>
 
                 <div class="col-sm-12 col-md-8">

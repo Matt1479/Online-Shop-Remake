@@ -1,0 +1,63 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Items
+{% endblock %}
+
+{% block main %}
+
+    <div class="row ml-3 mr-3 mb-3">
+
+        <div class="col">
+
+            <a class="btn btn-outline-success" href="{{ url_for('admin_new_item') }}" style="width: 50vw;">
+                Add a new item
+            </a>
+
+        </div>
+
+    </div>
+
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 row-cols-xxl-6 g-4">
+
+        {% for item in items %}
+
+            <div class="col">
+
+                <div class="card h-100">
+
+                    <img alt="{{ item.title }}" class="card-img-top" src="/{{ config['UPLOAD_FOLDER'] }}/{{ item.filename }}">
+
+                    <div class="card-body">
+
+                        <h5 class="card-title">{{ item.title }}</h5>
+
+                        <p class="card-text">{{ item.description }}</p>
+                        <p class="card-text">Price: {{ item.price | usd }}</p>
+
+                        <div class="btn-group" role="group">
+
+                            <a class="btn btn-warning btn-sm m-2" href="{{ url_for('admin_edit_item', id=item.id) }}">
+                                Edit
+                            </a>
+
+                            <div>
+                                <form action="{{ url_for('admin_delete_item') }}" method="post">
+                                    <input name="id" type="hidden" value="{{ item.id }}">
+                                    <button class="btn btn-danger btn-sm m-2" type="submit">Delete</button>
+                                </form>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+{% endblock %}

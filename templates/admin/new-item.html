@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Add a new item
+{% endblock %}
+
+{% block main %}
+
+    <form action="{{ url_for('admin_new_item') }}" enctype="multipart/form-data" method="post">
+
+        <div class="mb-3">
+            <label class="form-label" for="title">Title</label>
+            <textarea class="form-control" id="title" name="title" rows="3" type="text"></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="image">image</label>
+            <input accept="image/*" class="form-control" id="image" name="file" type="file">
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label" for="price">Price</label>
+            <input class="form-control" id="price" name="price" step="0.01" type="number">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="Description">Description</label>
+            <textarea class="form-control" id="Description" name="description" rows="4" type="text"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-success btn-lg">Add item</button>
+
+    </form>
+
+{% endblock %}

@@ -14,7 +14,7 @@
 
                 <div class="card h-100">
 
-                    <img src="/{{ item.image_path }}" class="card-img-top" alt="{{ item.title }}">
+                    <img src="/{{ config['UPLOAD_FOLDER'] }}/{{ item.filename }}" class="card-img-top" alt="{{ item.title }}">
 
                     <div class="card-body">
                         <h5 class="card-title">{{ item.title }}</h5>
