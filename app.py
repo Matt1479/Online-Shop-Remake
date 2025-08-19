@@ -473,3 +473,54 @@ def admin_logout():
 
     # Redirect to login form
     return redirect(url_for("admin_login"))
+
+
+@app.route("/admin/register", methods=["GET", "POST"])
+@admin_login_required
+def admin_register():
+    """Register a new admin (only logged-in admins can do this)."""
+
+    # User reached route via POST (by submitting a form via POST)
+    if request.method == "POST":
+        
+        username = request.form.get("username")
+        password = request.form.get("password")
+        confirm = request.form.get("confirm")
+
+        # Ensure user provided username, password, confirm
+        if not username:
+            flash("Username is required.", "error")
+            return redirect(url_for("admin_register"))
+        
+        elif not password:
+            flash("Password is required", "error")
+            return redirect(url_for("admin_register"))
+        
+        elif not confirm or password != confirm:
+            flash("Passwords do not match.", "error")
+            return redirect(url_for("admin_register"))
+        
+        # TODO: Use regex to make sure user provides a "strong" password
+        elif len(password) < 8:
+            flash("Password needs to be at least 8 characters long.", "error")
+            return redirect(url_for("admin_register"))
+        
+        # Query database for username
+        rows = db_utils.execute("SELECT * FROM admins WHERE username = ?", (username,))
+
+        # Ensure username is not taken
+        if len(rows) == 1:
+            flash("Username is taken", "error")
+            return redirect(url_for("admin_register"))
+        
+        # Insert the new user into admins table, storing a hash of the password
+        db_utils.execute("INSERT INTO admins (username, hash) VALUES (?, ?)",
+            (username, generate_password_hash(password)))
+        
+        # Flash a message and redirect to login page
+        flash("Successfully registered a new admin. Please log in.", "info")
+        return redirect(url_for("admin_login"))
+
+    # User reached route via GET (by clicking on a link, typing in a URL, via redirect)
+    else:
+        return render_template("admin/auth/register.html")
