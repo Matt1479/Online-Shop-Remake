@@ -424,11 +424,44 @@ def admin_update_status():
 
 # --- Admin: Auth ---
 
-@app.route("/admin/login")
+@app.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
     """Log admin in."""
 
-    return "TODO"
+    # Forget any admin_id
+    session.pop("admin_id", None)
+
+    # User reached route via POST (by submitting a form via POST)
+    if request.method == "POST":
+        
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        # Ensure values for fields were provided
+        if not username:
+            flash("Username is required.", "error")
+            return redirect(url_for("admin_login"))
+        elif not password:
+            flash("Password is required.", "error")
+            return redirect(url_for("admin_login"))
+        
+        # Query database for username
+        rows = db_utils.execute("SELECT * FROM admins WHERE username = ?", (username,))
+
+        # Ensure username exists in database and password is correct
+        if len(rows) != 1 or not check_password_hash(rows[0]["hash"], password):
+            flash("Invalid username and/or password.", "error")
+            return redirect(url_for("admin_login"))
+        
+        # Remember which user has logged in
+        session["admin_id"] = rows[0]["id"]
+
+        # Redirect to admin panel/index
+        return redirect(url_for("admin_orders"))
+
+    # User reached route via GET (by clicking on a link, typing in a URL, via redirect)
+    else:
+        return render_template("admin/auth/login.html")
 
 
 @app.route("/admin/logout")
