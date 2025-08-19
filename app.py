@@ -25,7 +25,7 @@ Session(app)
 app.jinja_env.filters["usd"] = usd
 
 # Set up the database
-app.config["DATABASE"] = "store.db"
+app.config["DATABASE"] = "_store.db"
 app.config["DEBUG_DB"] = True
 
 # Configure logging
@@ -417,12 +417,12 @@ def admin_delete_item():
     id = request.form.get("id")
 
     if id:
-        rows = db_utils.execute("SELECT image_path as path FROM items WHERE id = ?",
+        rows = db_utils.execute("SELECT filename FROM items WHERE id = ?",
             (id,))
         db_utils.execute("DELETE FROM items WHERE id = ?", (id,))
 
         # Remove image from disk
-        os.remove(os.path.join(rows[0]["path"]))
+        os.remove(os.path.join(app.config["UPLOAD_FOLDER"], rows[0]["filename"]))
 
         flash(f"Successfully deleted an item of id: {id}", "info")
 
@@ -508,7 +508,7 @@ def admin_new_item():
                 _, extension = os.path.splitext(filename)
 
                 current_top_id = db_utils.execute("SELECT MAX(id) as n FROM items")
-                new_id = int(current_top_id[0]["n"]) if current_top_id[0]["n"] else 1
+                new_id = int(current_top_id[0]["n"]) + 1 if current_top_id[0]["n"] else 1
                 
                 new_name = str(new_id) + extension
 
