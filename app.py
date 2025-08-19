@@ -408,10 +408,34 @@ def admin_delete_item():
 
 @app.route("/admin/edit-item/<int:id>", methods=["GET", "POST"])
 @admin_login_required
-def admin_edit_item():
+def admin_edit_item(id):
     """Edit an item in the database."""
 
-    return "TODO"
+    if request.method == "POST":
+
+        title = request.form.get("title")
+        # image = request.form.get("image")
+        price = request.form.get("price")
+        description = request.form.get("description")
+
+        try:
+            price = float(price)
+        except ValueError:
+            flash("Price must be a real number.", "error")
+            return redirect(url_for("admin_edit_item", id=id))
+
+        if title and price and description:
+            db_utils.execute("""
+                UPDATE items SET title = ?, price = ?, description = ? WHERE id = ?
+                """, (title, price, description, id))
+        
+        flash(f"Successfully updated an item of id: {id}", "info")
+        return redirect(url_for("admin_items"))
+
+    else:
+        
+        rows = db_utils.execute("SELECT * FROM items WHERE id = ?", (id,))
+        return render_template("admin/edit-item.html", item=rows[0])
 
 
 @app.route("/admin/items")
