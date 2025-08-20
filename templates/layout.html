@@ -30,7 +30,7 @@
                 <div class="container-fluid">
                     
                     <a class="navbar-brand"
-                        {% if request.endpoint.startswith("admin") %}
+                        {% if request.endpoint and request.endpoint.startswith("admin") %}
                             href="/admin"
                         {% else %}
                             href="{{ url_for('index') }}"

@@ -60,7 +60,7 @@ def close_connection(exception):
 
 @app.errorhandler(404)
 def not_found(e):
-    return "TODO"
+    return render_template("status/error/404.html")
 
 
 @app.errorhandler(RequestEntityTooLarge)
