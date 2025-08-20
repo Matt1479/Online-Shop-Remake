@@ -89,6 +89,21 @@ Run project with:
 flask run
 ```
 
+### Test Accounts
+
+To make it easier to explore the app, a few test accounts are already available.  
+
+#### User
+- **Login:** `testuser`  
+- **Password:** `12341234`  
+- Or you can register your own new user account.
+
+#### Admin
+> Admin accounts cannot be created by users. Use one of the pre-made accounts below:
+- **Login:** `testadmin0`  
+- **Login:** `testadmin1`  
+- **Password (for both):** `onlineshop`  
+
 ### Examples (Screenshots)
 
 <details>
