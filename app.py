@@ -25,7 +25,7 @@ Session(app)
 app.jinja_env.filters["usd"] = usd
 
 # Set up the database
-app.config["DATABASE"] = "_store.db"
+app.config["DATABASE"] = "store.db"
 app.config["DEBUG_DB"] = True
 
 # Configure logging
@@ -381,6 +381,7 @@ def register():
             (username, generate_password_hash(password)))
         
         # Redirect to login page
+        flash("Successfully registered. Please log in.")
         return redirect(url_for("login"))
 
     # User reached route via GET (by clicking on a link, typing in a URL, via redirect)
